@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export TZ="Europe/Warsaw"
+
 SESSION_DIR=".sessions"
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M)
@@ -45,7 +47,7 @@ end_session() {
         exit 1
     fi
     
-    read -r SESS_DATE SESS_NUM SESS_START < "$STATE_FILE"
+    IFS='|' read -r SESS_DATE SESS_NUM SESS_START < "$STATE_FILE"
     END_TIME=$(date +%H:%M)
     
     sed -i "s/^## Session $SESS_NUM ($SESS_START - )/## Session $SESS_NUM ($SESS_START - $END_TIME)/" "$SESSION_DIR/$SESS_DATE.md"
@@ -57,7 +59,7 @@ end_session() {
 
 status() {
     if [ -f "$STATE_FILE" ]; then
-        read -r SESS_DATE SESS_NUM SESS_START < "$STATE_FILE"
+        IFS='|' read -r SESS_DATE SESS_NUM SESS_START < "$STATE_FILE"
         echo "Active session: #$SESS_NUM (started $SESS_START)"
         echo "File: $SESSION_DIR/$SESS_DATE.md"
     else
