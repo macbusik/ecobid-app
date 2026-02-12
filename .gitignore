@@ -3,6 +3,9 @@
 daily-summaries/
 progress/
 
+# Kiro logs (keep for submission)
+# docs/kiro-logs/ - NOT ignored, these are required for competition
+.additional-resources/
 # Dependencies
 node_modules/
 __pycache__/
