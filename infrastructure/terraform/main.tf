@@ -11,7 +11,7 @@ terraform {
   backend "s3" {
     bucket         = "ecobid-terraform-state"
     key            = "terraform.tfstate"
-    region         = "us-east-1"
+    region         = "eu-central-1"
     encrypt        = true
     dynamodb_table = "ecobid-terraform-locks"
   }
