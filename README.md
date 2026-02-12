@@ -1,6 +1,23 @@
 # EcoBid App - 10000AIdeas Competition
 
-Mobile-first bidding application built on AWS Free Tier using spec-driven development.
+**Tagline**: "Give it away, or let the market decide"
+
+Mobile-first marketplace for decluttering your home - give items for free or run quick micro-auctions.
+
+## The Problem
+
+- Facebook Marketplace groups are platform-dependent and cluttered
+- Vinted/eBay require too much effort for low-value items
+- No dedicated space for "free stuff" in your neighborhood
+- People want to declutter but don't want the hassle
+
+## The Solution
+
+Two-mode marketplace app:
+1. **Free Mode** (Primary): Location-based free item listings with reservation system
+2. **Quick Auction Mode**: Minimal-effort micro-auctions for items worth $5-50
+
+Built on AWS Free Tier with serverless, event-driven architecture.
 
 ## Project Structure
 
