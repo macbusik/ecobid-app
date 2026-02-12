@@ -257,10 +257,43 @@ Push a change to the `develop` branch and check the Actions tab. The workflow sh
 
 ### Error: "Not authorized to perform sts:AssumeRoleWithWebIdentity"
 
-Check that:
-- OIDC provider exists in IAM
-- Role trust policy includes your repository
-- Repository name matches exactly (case-sensitive)
+The trust policy needs to be updated. Run:
+
+```bash
+./scripts/update-oidc-trust.sh YOUR_GITHUB_USERNAME
+```
+
+Or manually update the trust policy:
+
+1. Go to IAM → Roles → GitHubActionsEcoBidRole
+2. Click "Trust relationships" tab
+3. Click "Edit trust policy"
+4. Ensure it matches:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:YOUR_USERNAME/ecobid-app:*"
+        }
+      }
+    }
+  ]
+}
+```
+
+**Important**: Replace `YOUR_ACCOUNT_ID` and `YOUR_USERNAME` with actual values.
 
 ### Error: "Access Denied" during Terraform
 
