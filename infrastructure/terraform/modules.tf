@@ -31,16 +31,16 @@ module "lambda" {
 module "api_gateway" {
   source = "./modules/api_gateway"
 
-  project_name        = var.project_name
-  environment         = var.environment
-  lambda_invoke_arns  = module.lambda.function_invoke_arns
-  cognito_user_pool_arn = module.cognito.user_pool_arn
+  project_name           = var.project_name
+  environment            = var.environment
+  lambda_invoke_arns     = module.lambda.function_invoke_arns
+  cognito_user_pool_arn  = module.cognito.user_pool_arn
 }
 
 module "eventbridge" {
   source = "./modules/eventbridge"
 
-  project_name       = var.project_name
-  environment        = var.environment
+  project_name         = var.project_name
+  environment          = var.environment
   lambda_function_arns = module.lambda.function_arns
 }
