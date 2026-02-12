@@ -1,0 +1,45 @@
+# Session summaries and progress tracking
+.sessions/
+daily-summaries/
+progress/
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment variables
+.env
+.env.local
+*.pem
+
+# AWS credentials
+.aws/
+credentials
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Mobile
+*.apk
+*.ipa
+.expo/
