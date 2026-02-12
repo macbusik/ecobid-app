@@ -42,6 +42,10 @@ build/
 *.tfstate.backup
 .terraform/
 
+# Exception: Bootstrap state should be committed
+!infrastructure/terraform-bootstrap/terraform.tfstate
+!infrastructure/terraform-bootstrap/.terraform.lock.hcl
+
 # Mobile
 *.apk
 *.ipa
