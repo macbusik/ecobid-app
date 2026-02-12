@@ -51,13 +51,22 @@ cat > /tmp/trust-policy.json <<EOF
 }
 EOF
 
-# 3. Create IAM Role
-echo "Creating IAM role..."
-aws iam create-role \
-  --role-name "$ROLE_NAME" \
-  --assume-role-policy-document file:///tmp/trust-policy.json \
-  --description "Role for GitHub Actions to deploy EcoBid infrastructure" \
-  && echo "✓ IAM role created" || echo "✓ IAM role already exists"
+# 3. Create or Update IAM Role
+echo "Creating/updating IAM role..."
+if aws iam get-role --role-name "$ROLE_NAME" 2>/dev/null; then
+  echo "Role exists, updating trust policy..."
+  aws iam update-assume-role-policy \
+    --role-name "$ROLE_NAME" \
+    --policy-document file:///tmp/trust-policy.json
+  echo "✓ Trust policy updated"
+else
+  echo "Creating new role..."
+  aws iam create-role \
+    --role-name "$ROLE_NAME" \
+    --assume-role-policy-document file:///tmp/trust-policy.json \
+    --description "Role for GitHub Actions to deploy EcoBid infrastructure"
+  echo "✓ IAM role created"
+fi
 
 # 4. Create Permissions Policy
 cat > /tmp/permissions-policy.json <<EOF
@@ -91,8 +100,8 @@ cat > /tmp/permissions-policy.json <<EOF
 }
 EOF
 
-# 5. Attach Policy
-echo "Attaching permissions policy..."
+# 5. Attach/Update Policy
+echo "Attaching/updating permissions policy..."
 aws iam put-role-policy \
   --role-name "$ROLE_NAME" \
   --policy-name "EcoBidDeploymentPolicy" \
