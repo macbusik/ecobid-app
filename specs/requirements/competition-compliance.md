@@ -8,14 +8,16 @@
 ## Mandatory Technical Requirements
 
 ### TR-1: Kiro Usage (REQUIRED)
-- [ ] Use Kiro for portion of application development
-- [ ] Document Kiro implementation in submission
-- [ ] Provide detailed documentation of Kiro usage
+- [x] Use Kiro for portion of application development
+- [x] Document Kiro implementation in submission
+- [x] Provide detailed documentation of Kiro usage
 
 **Implementation**:
 - Use Kiro CLI for code generation, API design, infrastructure setup
 - Document all Kiro interactions in `docs/kiro-usage.md`
 - Include screenshots/logs of Kiro sessions
+- **Automated logging**: `scripts/kiro-log.sh` tracks all interactions
+- **Daily logs**: `docs/kiro-logs/YYYY-MM-DD.log` timestamped entries
 
 ### TR-2: AWS Free Tier Compliance (REQUIRED)
 - [ ] Build within AWS Free Tier limits
