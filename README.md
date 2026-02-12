@@ -89,3 +89,27 @@ ecobid-app/
 3. Implement backend handlers based on API specs
 4. Build mobile UI consuming the API
 5. Deploy via CI/CD pipelines
+
+## Development Workflow
+
+See detailed guidelines:
+- **Git Workflow**: `docs/git-workflow.md` - Branching strategy and commit conventions
+- **Development Standards**: `docs/development-guidelines.md` - Infrastructure, backend, frontend guidelines
+- **Session Tracking**: Use `./scripts/session.sh start|end|status`
+- **Kiro Logging**: Use `./scripts/kiro-log.sh log "Type" "Description"`
+
+### Quick Start
+```bash
+# Start new feature
+git checkout develop
+git checkout -b feature/backend/my-feature
+
+# Make changes, then commit
+git add .
+git commit -m "feat(backend): add my feature"
+./scripts/kiro-log.sh log "Code Generation" "Created my feature"
+
+# Merge back
+git checkout develop
+git merge feature/backend/my-feature --no-ff
+```
