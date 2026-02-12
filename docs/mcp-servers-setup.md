@@ -32,8 +32,22 @@ Based on competition requirements and project needs, we'll use these AWS MCP ser
 ## Installation
 
 ### Prerequisites
+
+**Quick Install**:
 ```bash
-# Install uv (if not already installed)
+# Run the installation script
+./scripts/install-uv.sh
+
+# Add to PATH (add to ~/.bashrc or ~/.zshrc)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Reload shell
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+**Manual Install**:
+```bash
+# Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install Python 3.10+
