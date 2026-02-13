@@ -47,3 +47,18 @@ output "user_pool_client_id" {
   description = "ID of the Cognito user pool client"
   value       = module.user_pool.client_id
 }
+
+output "api_endpoint" {
+  description = "API Gateway endpoint URL"
+  value       = module.api.api_endpoint
+}
+
+output "api_handler_function_name" {
+  description = "Name of the API handler Lambda function"
+  value       = module.api_handler.function_name
+}
+
+output "event_bus_name" {
+  description = "Name of the EventBridge event bus"
+  value       = module.events.event_bus_name
+}
