@@ -1,11 +1,3 @@
-# Example: Simple S3 bucket for testing
-module "test_bucket" {
-  source = "./modules/s3"
-
-  bucket_name = "${local.name_prefix}-test-bucket"
-  tags        = local.common_tags
-}
-
 # Main DynamoDB table for application data
 module "items_table" {
   source = "./modules/dynamodb"
