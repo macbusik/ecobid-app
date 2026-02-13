@@ -20,7 +20,7 @@ output "items_table_arn" {
 
 output "items_table_stream_arn" {
   description = "ARN of the items table stream"
-  value       = module.items_table.table_stream_arn
+  value       = module.items_table.stream_arn
 }
 
 output "images_bucket_name" {
@@ -45,5 +45,5 @@ output "user_pool_arn" {
 
 output "user_pool_client_id" {
   description = "ID of the Cognito user pool client"
-  value       = module.user_pool.user_pool_client_id
+  value       = module.user_pool.client_id
 }
