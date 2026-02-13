@@ -10,9 +10,9 @@ module "test_bucket" {
 module "items_table" {
   source = "./modules/dynamodb"
 
-  table_name                     = "${local.name_prefix}-items"
-  enable_point_in_time_recovery  = true
-  tags                           = local.common_tags
+  table_name                    = "${local.name_prefix}-items"
+  enable_point_in_time_recovery = true
+  tags                          = local.common_tags
 }
 
 # S3 bucket for item images
