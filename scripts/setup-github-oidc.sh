@@ -68,45 +68,19 @@ else
   echo "✓ IAM role created"
 fi
 
-# 4. Create Permissions Policy
-cat > /tmp/permissions-policy.json <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:*",
-        "s3:*",
-        "cognito-idp:*",
-        "lambda:*",
-        "apigateway:*",
-        "events:*",
-        "iam:GetRole",
-        "iam:GetRolePolicy",
-        "iam:CreateRole",
-        "iam:DeleteRole",
-        "iam:AttachRolePolicy",
-        "iam:DetachRolePolicy",
-        "iam:PutRolePolicy",
-        "iam:DeleteRolePolicy",
-        "iam:PassRole",
-        "logs:*",
-        "cloudwatch:*"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+# 4. Attach AdministratorAccess Policy
+echo "Attaching AdministratorAccess policy..."
+aws iam attach-role-policy \
+  --role-name "$ROLE_NAME" \
+  --policy-arn "arn:aws:iam::aws:policy/AdministratorAccess"
+echo "✓ AdministratorAccess policy attached"
 
-# 5. Attach/Update Policy
-echo "Attaching/updating permissions policy..."
-aws iam put-role-policy \
+# 5. Remove old inline policy if exists
+echo "Removing old inline policy (if exists)..."
+aws iam delete-role-policy \
   --role-name "$ROLE_NAME" \
   --policy-name "EcoBidDeploymentPolicy" \
-  --policy-document file:///tmp/permissions-policy.json
-echo "✓ Permissions policy attached"
+  2>/dev/null && echo "✓ Old policy removed" || echo "✓ No old policy to remove"
 
 # 6. Get Role ARN
 ROLE_ARN=$(aws iam get-role --role-name "$ROLE_NAME" --query 'Role.Arn' --output text)
