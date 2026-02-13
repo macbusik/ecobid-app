@@ -20,17 +20,19 @@
 - **Daily logs**: `docs/kiro-logs/YYYY-MM-DD.log` timestamped entries
 
 ### TR-2: AWS Free Tier Compliance (REQUIRED)
-- [ ] Build within AWS Free Tier limits
-- [ ] No billable services without explicit approval
-- [ ] Monitor usage to stay within limits
+- [x] Build within AWS Free Tier limits
+- [x] No billable services without explicit approval
+- [x] Monitor usage to stay within limits
 
 **AWS Services (Free Tier)**:
-- API Gateway: 1M API calls/month
-- Lambda: 1M requests/month, 400,000 GB-seconds compute
-- DynamoDB: 25GB storage, 25 RCU/WCU
-- S3: 5GB storage, 20,000 GET requests, 2,000 PUT requests
-- Cognito: 50,000 MAUs
-- CloudWatch: 10 custom metrics, 5GB logs
+- ✅ API Gateway: 1M API calls/month
+- ✅ Lambda: 1M requests/month, 400,000 GB-seconds compute
+- ✅ DynamoDB: 25GB storage, 25 RCU/WCU (deployed: ecobid-prod-items)
+- ✅ S3: 5GB storage, 20,000 GET requests, 2,000 PUT requests (deployed: ecobid-prod-images, ecobid-prod-test-bucket)
+- ✅ Cognito: 50,000 MAUs (deployed: ecobid-prod-users)
+- ✅ CloudWatch: 10 custom metrics, 5GB logs
+
+**Status**: Phase 1 infrastructure deployed and Free Tier compliant
 
 ### TR-3: Originality (REQUIRED)
 - [ ] Create original application not previously published
