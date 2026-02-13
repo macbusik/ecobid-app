@@ -41,6 +41,7 @@ build/
 *.tfstate
 *.tfstate.backup
 .terraform/
+tfplan.out
 
 # Exception: Bootstrap state should be committed
 !infrastructure/terraform-bootstrap/terraform.tfstate

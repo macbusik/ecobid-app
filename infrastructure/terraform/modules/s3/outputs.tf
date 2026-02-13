@@ -1,7 +1,14 @@
-output "images_bucket_name" {
-  value = aws_s3_bucket.images.id
+output "bucket_arn" {
+  description = "ARN of the S3 bucket"
+  value       = aws_s3_bucket.this.arn
 }
 
-output "images_bucket_arn" {
-  value = aws_s3_bucket.images.arn
+output "bucket_name" {
+  description = "Name of the S3 bucket"
+  value       = aws_s3_bucket.this.id
+}
+
+output "bucket_domain_name" {
+  description = "Domain name of the S3 bucket"
+  value       = aws_s3_bucket.this.bucket_domain_name
 }
