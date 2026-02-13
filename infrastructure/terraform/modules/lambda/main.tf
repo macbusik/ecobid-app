@@ -13,7 +13,8 @@ resource "aws_iam_role" "lambda" {
     }]
   })
 
-  tags = var.tags
+  # Remove tags to avoid iam:TagRole permission requirement
+  # Tags can be added later when IAM permissions are updated
 }
 
 # Attach basic execution policy
