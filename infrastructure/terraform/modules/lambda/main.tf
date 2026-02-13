@@ -1,24 +1,56 @@
-# Placeholder for Lambda module - will be implemented with actual functions
-variable "project_name" {
-  type = string
+# IAM role for Lambda execution
+resource "aws_iam_role" "lambda" {
+  name = "${var.function_name}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
+
+  tags = var.tags
 }
 
-variable "environment" {
-  type = string
+# Attach basic execution policy
+resource "aws_iam_role_policy_attachment" "lambda_basic" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-variable "dynamodb_table_arn" {
-  type = string
+# Archive Lambda code
+data "archive_file" "lambda" {
+  type        = "zip"
+  source_dir  = var.source_dir
+  output_path = "${path.module}/lambda_${var.function_name}.zip"
 }
 
-variable "images_bucket_arn" {
-  type = string
+# Lambda function
+resource "aws_lambda_function" "this" {
+  filename         = data.archive_file.lambda.output_path
+  function_name    = var.function_name
+  role             = aws_iam_role.lambda.arn
+  handler          = var.handler
+  source_code_hash = data.archive_file.lambda.output_base64sha256
+  runtime          = var.runtime
+  memory_size      = var.memory_size
+  timeout          = var.timeout
+
+  environment {
+    variables = var.environment_variables
+  }
+
+  tags = var.tags
 }
 
-output "function_arns" {
-  value = {}
-}
+# CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "lambda" {
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = 7
 
-output "function_invoke_arns" {
-  value = {}
+  tags = var.tags
 }
