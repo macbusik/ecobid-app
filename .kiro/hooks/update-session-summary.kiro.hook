@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Update Session Summary",
+  "description": "Generate session summary from recent git commits and update the current session file",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Read .sessions/.current to get the active session. Analyze git commits since the session start time. Read the current session file and update it with: 1) Detailed \"What I Built\" section with accomplishments, 2) \"Commits\" section with commit hashes and descriptions, 3) \"Infrastructure Deployed\" if any AWS resources were created, 4) \"Notes\" with key achievements and next steps. Be specific and include resource names."
+  }
+}

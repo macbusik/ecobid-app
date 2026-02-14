@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Session Summary Helper",
+  "description": "Helps generate session documentation by analyzing recent git commits and work done",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check if there's an active session in .sessions/.current. If yes, analyze the last 10 git commits and suggest updates to the current session file with: 1) What was built/accomplished, 2) Key commits with descriptions, 3) Infrastructure changes or deployments. Keep it concise and ready to paste."
+  }
+}
