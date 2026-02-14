@@ -1,0 +1,788 @@
+openapi: 3.0.3
+info:
+  title: EcoBid API
+  description: |
+    RESTful API for EcoBid - a mobile-first marketplace for giving away items for free or running quick auctions.
+    
+    ## Authentication
+    All endpoints require authentication via AWS Cognito. Include the JWT token in the Authorization header:
+    ```
+    Authorization: Bearer <cognito-jwt-token>
+    ```
+    
+    ## Rate Limiting
+    - 1000 requests per hour per user
+    - 100 requests per minute per user
+    
+    ## Error Responses
+    All errors follow this format:
+    ```json
+    {
+      "error": {
+        "code": "ERROR_CODE",
+        "message": "Human-readable error message",
+        "details": {}
+      }
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: EcoBid API Support
+    email: api@ecobid.app
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.ecobid.app/v1
+    description: Production server
+  - url: https://dev-api.ecobid.app/v1
+    description: Development server
+
+tags:
+  - name: Items
+    description: Free items and auction listings
+  - name: Reservations
+    description: Reserve free items for pickup
+  - name: Auctions
+    description: Quick auction operations
+  - name: Bids
+    description: Bidding on auctions
+  - name: Users
+    description: User profiles and ratings
+  - name: Notifications
+    description: Push notification preferences
+
+security:
+  - CognitoAuth: []
+
+paths:
+  /items:
+    get:
+      tags:
+        - Items
+      summary: List items
+      description: Get a list of items with optional filters
+      operationId: listItems
+      parameters:
+        - name: lat
+          in: query
+          description: Latitude for location-based search
+          required: false
+          schema:
+            type: number
+            format: double
+            example: 52.2297
+        - name: lon
+          in: query
+          description: Longitude for location-based search
+          required: false
+          schema:
+            type: number
+            format: double
+            example: 21.0122
+        - name: radius
+          in: query
+          description: Search radius in kilometers
+          required: false
+          schema:
+            type: integer
+            enum: [1, 5, 10, 25]
+            default: 5
+        - name: category
+          in: query
+          description: Filter by category
+          required: false
+          schema:
+            type: string
+            enum: [furniture, electronics, clothing, books, home, kids, sports, other]
+        - name: mode
+          in: query
+          description: Filter by item mode
+          required: false
+          schema:
+            type: string
+            enum: [free, auction]
+        - name: status
+          in: query
+          description: Filter by item status
+          required: false
+          schema:
+            type: string
+            enum: [available, reserved, completed]
+        - name: limit
+          in: query
+          description: Number of items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: cursor
+          in: query
+          description: Pagination cursor from previous response
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Item'
+                  cursor:
+                    type: string
+                    description: Cursor for next page (null if no more results)
+                  total:
+                    type: integer
+                    description: Total number of items matching filters
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    post:
+      tags:
+        - Items
+      summary: Create item
+      description: Post a new free item or auction
+      operationId: createItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemRequest'
+      responses:
+        '201':
+          description: Item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /items/{itemId}:
+    get:
+      tags:
+        - Items
+      summary: Get item details
+      description: Retrieve detailed information about a specific item
+      operationId: getItem
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    delete:
+      tags:
+        - Items
+      summary: Delete item
+      description: Delete an item (only by owner)
+      operationId: deleteItem
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Item deleted successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /items/{itemId}/reserve:
+    post:
+      tags:
+        - Reservations
+      summary: Reserve item
+      description: Reserve a free item for pickup
+      operationId: reserveItem
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: Optional message to seller
+                  maxLength: 500
+      responses:
+        '201':
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Item already reserved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /reservations/{reservationId}/confirm:
+    post:
+      tags:
+        - Reservations
+      summary: Confirm reservation
+      description: Seller confirms reservation and provides pickup details
+      operationId: confirmReservation
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pickupTime
+              properties:
+                pickupTime:
+                  type: string
+                  format: date-time
+                message:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Reservation confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /reservations/{reservationId}/complete:
+    post:
+      tags:
+        - Reservations
+      summary: Complete reservation
+      description: Mark reservation as completed after pickup
+      operationId: completeReservation
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reservation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+
+  /auctions:
+    post:
+      tags:
+        - Auctions
+      summary: Create auction
+      description: Create a new quick auction
+      operationId: createAuction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuctionRequest'
+      responses:
+        '201':
+          description: Auction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auction'
+
+  /auctions/{auctionId}/bids:
+    post:
+      tags:
+        - Bids
+      summary: Place bid
+      description: Place a bid on an active auction
+      operationId: placeBid
+      parameters:
+        - name: auctionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  minimum: 0.01
+                  description: Bid amount in local currency
+      responses:
+        '201':
+          description: Bid placed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+        '400':
+          description: Invalid bid (too low, auction ended, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      description: Retrieve the authenticated user's profile
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    
+    patch:
+      tags:
+        - Users
+      summary: Update user profile
+      description: Update the authenticated user's profile
+      operationId: updateCurrentUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                location:
+                  type: object
+                  properties:
+                    city:
+                      type: string
+                    country:
+                      type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{userId}/ratings:
+    post:
+      tags:
+        - Users
+      summary: Rate user
+      description: Submit a rating for another user after transaction
+      operationId: rateUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+                - transactionId
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+                  maxLength: 500
+                transactionId:
+                  type: string
+                  description: Item or auction ID
+      responses:
+        '201':
+          description: Rating submitted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+  securitySchemes:
+    CognitoAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: AWS Cognito JWT token
+
+  schemas:
+    Item:
+      type: object
+      required:
+        - id
+        - userId
+        - title
+        - category
+        - mode
+        - status
+        - location
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: "item_abc123"
+        userId:
+          type: string
+          example: "user_xyz789"
+        title:
+          type: string
+          example: "IKEA desk"
+        description:
+          type: string
+          example: "White desk in good condition"
+        category:
+          type: string
+          enum: [furniture, electronics, clothing, books, home, kids, sports, other]
+        mode:
+          type: string
+          enum: [free, auction]
+        status:
+          type: string
+          enum: [available, reserved, completed, cancelled]
+        imageUrl:
+          type: string
+          format: uri
+        thumbnailUrl:
+          type: string
+          format: uri
+        location:
+          $ref: '#/components/schemas/Location'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateItemRequest:
+      type: object
+      required:
+        - title
+        - category
+        - mode
+        - location
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        category:
+          type: string
+          enum: [furniture, electronics, clothing, books, home, kids, sports, other]
+        mode:
+          type: string
+          enum: [free, auction]
+        location:
+          $ref: '#/components/schemas/Location'
+        imageUrl:
+          type: string
+          format: uri
+          description: S3 presigned URL after upload
+        auctionSettings:
+          $ref: '#/components/schemas/AuctionSettings'
+
+    Location:
+      type: object
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        lon:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+        city:
+          type: string
+        country:
+          type: string
+        geohash:
+          type: string
+          description: Computed server-side
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: string
+        itemId:
+          type: string
+        buyerId:
+          type: string
+        sellerId:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+        pickupTime:
+          type: string
+          format: date-time
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+
+    Auction:
+      type: object
+      properties:
+        id:
+          type: string
+        itemId:
+          type: string
+        minBid:
+          type: number
+          format: double
+        currentBid:
+          type: number
+          format: double
+        bidCount:
+          type: integer
+        winnerId:
+          type: string
+        status:
+          type: string
+          enum: [active, ended, completed, cancelled]
+        endsAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateAuctionRequest:
+      type: object
+      required:
+        - itemId
+        - minBid
+        - duration
+      properties:
+        itemId:
+          type: string
+        minBid:
+          type: number
+          format: double
+          minimum: 5
+          maximum: 50
+        duration:
+          type: integer
+          enum: [24, 48]
+          description: Auction duration in hours
+
+    AuctionSettings:
+      type: object
+      properties:
+        minBid:
+          type: number
+          format: double
+        duration:
+          type: integer
+          enum: [24, 48]
+
+    Bid:
+      type: object
+      properties:
+        id:
+          type: string
+        auctionId:
+          type: string
+        userId:
+          type: string
+        amount:
+          type: number
+          format: double
+        createdAt:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        rating:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 5
+        ratingCount:
+          type: integer
+        itemsGiven:
+          type: integer
+        itemsReceived:
+          type: integer
+        location:
+          type: object
+          properties:
+            city:
+              type: string
+            country:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: "INVALID_REQUEST"
+            message:
+              type: string
+              example: "The request is invalid"
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "INVALID_REQUEST"
+              message: "The request is invalid"
+    
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication required"
+    
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "You don't have permission to perform this action"
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "The requested resource was not found"
+    
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "INTERNAL_ERROR"
+              message: "An internal error occurred"
